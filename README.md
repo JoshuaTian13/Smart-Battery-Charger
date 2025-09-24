@@ -1,12 +1,12 @@
-# 🔋 Smart Battery Charger
+# Smart Battery Charger
 
 An IoT-enabled charging system for lithium batteries, combining embedded sensing, real-time telemetry, and cloud-based optimization.  
-✅ Hardware and core functionality are complete.  
-🚧 This GitHub repo is a **work in progress** — code and detailed documentation are being cleaned up and added.  
+Hardware and core functionality are complete.  
+This GitHub repo is a **work in progress** — code and detailed documentation are being cleaned up and added.  
 
 ---
 
-## 📖 Overview of Subsystems
+## Overview of Subsystems
 
 ### Embedded Hardware & Firmware
 - Custom PCB built around ESP32  
@@ -27,11 +27,11 @@ An IoT-enabled charging system for lithium batteries, combining embedded sensing
 
 ---
 
-## 🚧 Repository Status
-- Hardware + firmware: ✅ functional  
-- Cloud integration: ✅ prototype tested, docs in progress  
-- Dashboard: ✅ prototype running, code cleanup pending  
-- Repo documentation: 🚧 ongoing (expect updates soon)  
+## Repository Status
+- Hardware + firmware: functional  
+- Cloud integration: prototype tested, docs in progress  
+- Dashboard: prototype running, code cleanup pending  
+- Repo documentation: ongoing (expect updates soon)  
 
 ---
 
