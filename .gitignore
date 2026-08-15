@@ -1,0 +1,13 @@
+.pio/
+.venv/
+__pycache__/
+.pytest_cache/
+*.pyc
+*.joblib
+ml/artifacts/
+dashboard/node_modules/
+dashboard/dist/
+build/
+firmware/include/credentials.hpp
+.env
+.DS_Store
