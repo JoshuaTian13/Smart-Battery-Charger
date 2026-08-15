@@ -1,0 +1,18 @@
+{
+  "device_id": "charger-001",
+  "items": [
+    {
+      "device_id": "charger-001",
+      "timestamp_ms": 123456,
+      "voltage_v": 4.02,
+      "current_ma": 420.0,
+      "temperature_c": 31.5,
+      "phase": "constant_current",
+      "fault": "none",
+      "delivered_capacity_mah": 612.4,
+      "cycle_count": 83,
+      "power_w": 1.6884,
+      "predicted_health_pct": 93.25
+    }
+  ]
+}

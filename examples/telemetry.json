@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "device_id": "charger-001",
+  "timestamp_ms": 123456,
+  "voltage_v": 4.02,
+  "current_ma": 420.0,
+  "temperature_c": 31.5,
+  "battery_present": true,
+  "phase": "constant_current",
+  "fault": "none",
+  "charge_enabled": true,
+  "requested_current_ma": 800.0,
+  "delivered_capacity_mah": 612.4,
+  "cycle_count": 83
+}
