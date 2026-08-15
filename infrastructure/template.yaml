@@ -1,0 +1,119 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: Smart Battery Charger telemetry, storage, inference, and query API
+
+Parameters:
+  SageMakerEndpointName:
+    Type: String
+    Default: ""
+    Description: Optional deployed health-model endpoint
+  AllowedDashboardOrigin:
+    Type: String
+    Default: "*"
+
+Conditions:
+  HasSageMakerEndpoint: !Not [!Equals [!Ref SageMakerEndpointName, ""]]
+
+Globals:
+  Function:
+    Runtime: python3.12
+    Architectures: [arm64]
+    Timeout: 10
+    MemorySize: 256
+    Tracing: Active
+
+Resources:
+  TelemetryTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: device_id
+          AttributeType: S
+        - AttributeName: timestamp_ms
+          AttributeType: N
+      KeySchema:
+        - AttributeName: device_id
+          KeyType: HASH
+        - AttributeName: timestamp_ms
+          KeyType: RANGE
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+
+  ModelArtifactsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  TelemetryProcessor:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../cloud/
+      Handler: lambdas/telemetry_processor/app.lambda_handler
+      Environment:
+        Variables:
+          TELEMETRY_TABLE_NAME: !Ref TelemetryTable
+          SAGEMAKER_ENDPOINT_NAME: !Ref SageMakerEndpointName
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref TelemetryTable
+        - !If
+          - HasSageMakerEndpoint
+          - Statement:
+              - Effect: Allow
+                Action: sagemaker:InvokeEndpoint
+                Resource: !Sub arn:aws:sagemaker:${AWS::Region}:${AWS::AccountId}:endpoint/${SageMakerEndpointName}
+          - !Ref AWS::NoValue
+      Events:
+        Telemetry:
+          Type: IoTRule
+          Properties:
+            AwsIotSqlVersion: "2016-03-23"
+            Sql: SELECT * FROM 'battery-charger/+/telemetry'
+
+  TelemetryApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      CorsConfiguration:
+        AllowOrigins:
+          - !Ref AllowedDashboardOrigin
+        AllowMethods: [GET]
+        AllowHeaders: [Content-Type]
+
+  QueryFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../cloud/
+      Handler: lambdas/query_api/app.lambda_handler
+      Environment:
+        Variables:
+          TELEMETRY_TABLE_NAME: !Ref TelemetryTable
+          ALLOWED_ORIGIN: !Ref AllowedDashboardOrigin
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref TelemetryTable
+      Events:
+        RecentTelemetry:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref TelemetryApi
+            Path: /devices/{device_id}/telemetry
+            Method: GET
+
+Outputs:
+  ApiUrl:
+    Value: !Sub https://${TelemetryApi}.execute-api.${AWS::Region}.amazonaws.com
+  TelemetryTableName:
+    Value: !Ref TelemetryTable
+  ModelArtifactsBucketName:
+    Value: !Ref ModelArtifactsBucket
